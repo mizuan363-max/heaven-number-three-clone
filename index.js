@@ -2,39 +2,51 @@ const { Telegraf } = require('telegraf');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const http = require('http');
 
-// Bot နှင့် AI ပတ်သက်သော Key များ
+// Tokens
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+// ✅ FIXED MODEL NAME
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-1.5-flash-latest" 
+});
 
 // Start Command
-bot.start((ctx) => ctx.reply("မင်္ဂလာပါ။ Bot အောင်မြင်စွာ အလုပ်လုပ်နေပါပြီခင်ဗျာ။"));
+bot.start((ctx) => 
+  ctx.reply("Hello! Bot is now working 🤖")
+);
 
 // Message Handling
 bot.on('text', async (ctx) => {
-    try {
-        await ctx.sendChatAction('typing');
-        const result = await model.generateContent(ctx.message.text);
-        const response = await result.response;
-        await ctx.reply(response.text());
-    } catch (error) {
-        console.error(error);
-        ctx.reply("ခဏနားပြီးမှ ပြန်မေးပေးပါခင်ဗျာ။");
-    }
+  try {
+    await ctx.sendChatAction('typing');
+
+    const result = await model.generateContent(ctx.message.text);
+
+    // ✅ safer response handling
+    const text = result.response.text();
+
+    await ctx.reply(text || "No response generated 😅");
+  } catch (error) {
+    console.error("ERROR:", error.message);
+
+    ctx.reply("❌ Error occurred... Please try again later.");
+  }
 });
 
-// Render ရဲ့ Web Service ပိတ်မသွားအောင် Port တစ်ခုဖွင့်ထားခြင်း
+// Keep-alive server (Render)
 const server = http.createServer((req, res) => {
-    res.writeHead(200);
-    res.end("Bot is running!");
+  res.writeHead(200);
+  res.end("Bot is running!");
 });
 
 const PORT = process.env.PORT || 3000;
+
 server.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
-    bot.launch(); // Bot ကို စတင်အသက်သွင်းခြင်း
+  console.log(`Server running on port ${PORT}`);
+  bot.launch();
 });
 
-// စနစ်တကျ ရပ်တန့်နိုင်ရန်
+// Graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
