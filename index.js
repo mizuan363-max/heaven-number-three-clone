@@ -14,7 +14,7 @@ server.listen(port, () => console.log(`Listening on ${port}`));
 const bot = new Telegraf(process.env.BOT_TOKEN);
 // Key နာမည်ကို GEMINI_API_KEY လို့ပဲ အတည်ပြုလိုက်မယ်နော်
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 bot.start((ctx) => ctx.reply("မင်္ဂလာပါ။ Heaven_number_three_clone bot မှ ကြိုဆိုပါတယ်။"));
 
